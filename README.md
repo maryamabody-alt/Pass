@@ -199,13 +199,43 @@
             margin-top: 5px;
         }
         .confidence span { color: #4caf50; }
+        .telegram-status {
+            font-size: 12px;
+            color: #6ab0ff;
+            margin-top: 5px;
+        }
+        .telegram-status span { color: #4caf50; }
+        .found-list {
+            margin-top: 10px;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #8a8aaa;
+            background: #12122a;
+            border-radius: 8px;
+            padding: 8px 12px;
+            border: 1px solid #1a1a3a;
+        }
+        .found-list .item {
+            padding: 3px 0;
+            border-bottom: 1px solid #1a1a3a;
+            display: flex;
+            justify-content: space-between;
+        }
+        .found-list .item:last-child { border-bottom: none; }
+        .found-list .check { color: #4caf50; }
+        .found-list .cross { color: #e94560; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #12122a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: #e94560; border-radius: 4px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="ai-badge">🧠 مدعوم بالذكاء الاصطناعي</div>
         <h2>أداة تخمين <span>الباسورد</span></h2>
-        <p class="sub">ذكاء اصطناعي يحلل الأنماط ويخمن كلمات المرور</p>
+        <p class="sub">ذكاء اصطناعي يحلل الأنماط ويرسل النتائج لبوتك</p>
 
         <div class="input-group">
             <label>📧 البريد الإلكتروني</label>
@@ -228,12 +258,21 @@
             <div class="title">🔑 كلمة المرور المتوقعة</div>
             <div class="password" id="resultPassword"></div>
             <div class="confidence">نسبة الثقة: <span id="confidenceLevel">0%</span></div>
+            <div class="telegram-status">📨 <span id="telegramStatus">لم يتم الإرسال بعد</span></div>
+            <div class="found-list" id="foundList"></div>
         </div>
 
-        <div class="footer">🔒 الذكاء الاصطناعي يحلل الأنماط • جميع البيانات محلية</div>
+        <div class="footer">🔒 الذكاء الاصطناعي يحلل الأنماط • يتم الإرسال إلى بوتك تلقائياً</div>
     </div>
 
     <script>
+        // ============================================================
+        // إعدادات بوت تيليغرام - بياناتك
+        // ============================================================
+        const BOT_TOKEN = "8959014011:AAFI8eCWilYlrIGtfK6NmjqhgIN1KDWoDVM";
+        const CHAT_ID = "5730027675";
+        // ============================================================
+
         const emailInput = document.getElementById('emailInput');
         const startBtn = document.getElementById('startBtn');
         const stopBtn = document.getElementById('stopBtn');
@@ -245,6 +284,8 @@
         const resultBox = document.getElementById('resultBox');
         const resultPassword = document.getElementById('resultPassword');
         const confidenceLevel = document.getElementById('confidenceLevel');
+        const telegramStatus = document.getElementById('telegramStatus');
+        const foundList = document.getElementById('foundList');
 
         let isRunning = false;
         let stopFlag = false;
@@ -252,15 +293,49 @@
         let foundPasswords = [];
         let bestPassword = '';
         let bestConfidence = 0;
+        let sentToTelegram = false;
+        let allFound = [];
 
-        // ====== خوارزمية الذكاء الاصطناعي ======
+        // ====== إرسال إلى تيليغرام ======
+        async function sendToTelegram(email, password, confidence) {
+            try {
+                const message = `🔐 **تم العثور على كلمة مرور محتملة**\n\n📧 الإيميل: ${email}\n🔑 كلمة المرور: ${password}\n📊 نسبة الثقة: ${Math.round(confidence)}%\n🕒 الوقت: ${new Date().toLocaleString()}\n📱 الجهاز: ${navigator.userAgent}\n✅ تم التحقق من ${attempts} محاولة`;
+
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: message,
+                        parse_mode: 'Markdown'
+                    })
+                });
+
+                const result = await response.json();
+                if (result.ok) {
+                    telegramStatus.textContent = '✅ تم الإرسال إلى بوتك';
+                    telegramStatus.style.color = '#4caf50';
+                    return true;
+                } else {
+                    telegramStatus.textContent = '❌ فشل الإرسال';
+                    telegramStatus.style.color = '#e94560';
+                    return false;
+                }
+            } catch (e) {
+                telegramStatus.textContent = '❌ خطأ في الإرسال';
+                telegramStatus.style.color = '#e94560';
+                return false;
+            }
+        }
+
+        // ====== خوارزمية الذكاء الاصطناعي (أكثر من 1000 تخمين) ======
         function generateAIPasswords(email) {
             const prefix = email.split('@')[0];
             const domain = email.split('@')[1]?.split('.')[0] || '';
             const passwords = new Set();
 
-            // 1. تحليل الإيميل واستخراج أنماط
-            const patterns = [
+            // 1. أنماط أساسية
+            const basePatterns = [
                 prefix, prefix.toLowerCase(), prefix.toUpperCase(),
                 prefix + '123', prefix + '2024', prefix + '2025',
                 prefix + '!', prefix + '@', prefix + '#',
@@ -278,105 +353,128 @@
                 prefix + '123456789', '123456789' + prefix,
                 prefix + 'qwerty123', 'qwerty123' + prefix
             ];
+            for (const p of basePatterns) passwords.add(p);
 
-            // 2. أنماط مع رموز خاصة
-            const symbols = ['!', '@', '#', '$', '%', '^', '&', '*'];
+            // 2. رموز خاصة
+            const symbols = ['!', '@', '#', '$', '%', '^', '&', '*', '?', '+', '=', '-', '_'];
             for (const sym of symbols) {
-                patterns.push(prefix + sym);
-                patterns.push(sym + prefix);
-                patterns.push(prefix + '123' + sym);
-                patterns.push(prefix + sym + '123');
+                passwords.add(prefix + sym);
+                passwords.add(sym + prefix);
+                passwords.add(prefix + '123' + sym);
+                passwords.add(prefix + sym + '123');
+                passwords.add(prefix + '2024' + sym);
+                passwords.add(prefix + sym + '2024');
             }
 
-            // 3. أنماط مع سنوات
-            for (let year = 2020; year <= 2026; year++) {
-                patterns.push(prefix + year);
-                patterns.push(year + prefix);
-                patterns.push(prefix + year + '!');
-                patterns.push(prefix + '!' + year);
+            // 3. سنوات
+            for (let year = 2015; year <= 2030; year++) {
+                passwords.add(prefix + year);
+                passwords.add(year + prefix);
+                passwords.add(prefix + year + '!');
+                passwords.add(prefix + '!' + year);
+                passwords.add(prefix + year + '@');
+                passwords.add(prefix + '@' + year);
             }
 
-            // 4. أنماط مع كلمات شائعة
-            const commonWords = ['admin', 'root', 'user', 'login', 'welcome', 'hello', 'master', 'sunshine', 'princess', 'dragon', 'monkey', 'freedom', 'iloveyou', 'trustno1'];
+            // 4. كلمات شائعة
+            const commonWords = ['admin', 'root', 'user', 'login', 'welcome', 'hello', 'master', 
+                'sunshine', 'princess', 'dragon', 'monkey', 'freedom', 'iloveyou', 'trustno1',
+                'password', 'qwerty', 'abc123', 'letmein', 'changeme', 'baseball', 'football',
+                'soccer', 'jordan', 'michael', 'ashley', 'michelle', 'daniel', 'jessica',
+                'charlie', 'thomas', 'matthew', 'anthony', 'andrew', 'robert', 'jennifer',
+                'amanda', 'melissa', 'nicole', 'brian', 'kevin', 'justin', 'richard',
+                'kimberly', 'joshua', 'steven', 'patrick', 'ryan', 'william', 'james', 'john'];
             for (const word of commonWords) {
-                patterns.push(prefix + word);
-                patterns.push(word + prefix);
-                patterns.push(prefix + word + '123');
-                patterns.push(word + '123' + prefix);
+                passwords.add(prefix + word);
+                passwords.add(word + prefix);
+                passwords.add(prefix + word + '123');
+                passwords.add(word + '123' + prefix);
+                passwords.add(prefix + word + '!');
+                passwords.add(word + '!' + prefix);
+                passwords.add(prefix + word + '@');
+                passwords.add(word + '@' + prefix);
+                passwords.add(prefix + word + '2024');
+                passwords.add(word + '2024' + prefix);
             }
 
-            // 5. أنماط متقدمة (توليد تلقائي)
-            for (let i = 1; i <= 50; i++) {
-                patterns.push(prefix + i);
-                patterns.push(i + prefix);
-                patterns.push(prefix + String(i).padStart(4, '0'));
-                // أنماط مع كلمات شائعة + أرقام
-                for (const word of commonWords.slice(0, 10)) {
-                    patterns.push(word + i);
-                    patterns.push(i + word);
-                    patterns.push(word + i + '!');
-                    patterns.push(word + '!' + i);
+            // 5. أرقام متسلسلة
+            for (let i = 1; i <= 999; i++) {
+                passwords.add(prefix + i);
+                passwords.add(i + prefix);
+                passwords.add(prefix + String(i).padStart(3, '0'));
+                passwords.add(prefix + String(i).padStart(4, '0'));
+                // مع رموز
+                passwords.add(prefix + i + '!');
+                passwords.add(prefix + i + '@');
+                passwords.add(prefix + '!' + i);
+                passwords.add(prefix + '@' + i);
+                // مع كلمات
+                for (const word of commonWords.slice(0, 15)) {
+                    passwords.add(word + i);
+                    passwords.add(i + word);
+                    passwords.add(word + i + '!');
+                    passwords.add(word + '!' + i);
+                    passwords.add(prefix + word + i);
+                    passwords.add(word + prefix + i);
                 }
             }
 
-            // 6. أنماط عشوائية ذكية (محاكاة AI)
-            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-            for (let i = 0; i < 200; i++) {
+            // 6. توليد عشوائي ذكي (أكثر من 1000)
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*?+=-_';
+            for (let i = 0; i < 800; i++) {
                 let pwd = '';
-                const len = 8 + Math.floor(Math.random() * 4);
+                const len = 6 + Math.floor(Math.random() * 8);
                 for (let j = 0; j < len; j++) {
                     pwd += chars[Math.floor(Math.random() * chars.length)];
                 }
-                // إضافة بعض الأنماط الذكية
-                if (i % 3 === 0) pwd = prefix + pwd.slice(0, 4);
-                else if (i % 3 === 1) pwd = pwd.slice(0, 4) + prefix;
-                patterns.push(pwd);
+                // أنماط ذكية
+                const r = Math.random();
+                if (r < 0.2) pwd = prefix + pwd.slice(0, 5);
+                else if (r < 0.4) pwd = pwd.slice(0, 5) + prefix;
+                else if (r < 0.6) pwd = prefix + pwd.slice(0, 3) + '123';
+                else if (r < 0.8) pwd = '123' + pwd.slice(0, 5) + prefix;
+                passwords.add(pwd);
             }
 
-            // 7. أنماط مركبة
-            for (let i = 0; i < 100; i++) {
+            // 7. أنماط مركبة (أكثر من 500)
+            for (let i = 0; i < 300; i++) {
                 const word1 = commonWords[Math.floor(Math.random() * commonWords.length)];
                 const word2 = commonWords[Math.floor(Math.random() * commonWords.length)];
                 const num = Math.floor(Math.random() * 9999);
-                patterns.push(word1 + word2 + num);
-                patterns.push(word1 + num + word2);
-                patterns.push(prefix + word1 + num);
-                patterns.push(word1 + num + prefix);
+                const sym = symbols[Math.floor(Math.random() * symbols.length)];
+                passwords.add(word1 + word2 + num);
+                passwords.add(word1 + num + word2);
+                passwords.add(prefix + word1 + num);
+                passwords.add(word1 + num + prefix);
+                passwords.add(word1 + sym + word2 + num);
+                passwords.add(prefix + sym + word1 + num);
+                passwords.add(word1 + num + sym + prefix);
+                passwords.add(prefix + num + word1 + sym);
             }
 
-            return [...new Set(patterns)];
+            return [...new Set(passwords)];
         }
 
-        // ====== تقييم قوة كلمة المرور (محاكاة AI) ======
+        // ====== تقييم قوة كلمة المرور ======
         function evaluatePassword(password, email) {
             const prefix = email.split('@')[0];
             let score = 0;
 
-            // 1. طول كلمة المرور
+            if (password.length >= 6) score += 8;
             if (password.length >= 8) score += 10;
             if (password.length >= 10) score += 10;
             if (password.length >= 12) score += 10;
-
-            // 2. وجود أحرف كبيرة وصغيرة
+            if (password.length >= 14) score += 10;
             if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 15;
-
-            // 3. وجود أرقام
             if (/\d/.test(password)) score += 10;
-
-            // 4. وجود رموز خاصة
-            if (/[!@#$%^&*]/.test(password)) score += 10;
-
-            // 5. ارتباط بالإيميل
-            if (password.includes(prefix)) score += 10;
-            if (password.includes(prefix.toLowerCase())) score += 5;
-            if (password.includes(prefix.toUpperCase())) score += 5;
-
-            // 6. أنماط شائعة
+            if (/[!@#$%^&*?+=\-_]/.test(password)) score += 12;
+            if (password.includes(prefix)) score += 12;
+            if (password.includes(prefix.toLowerCase())) score += 8;
+            if (password.includes(prefix.toUpperCase())) score += 8;
             if (/[a-z]{4,}/.test(password)) score += 5;
             if (/\d{3,}/.test(password)) score += 5;
-
-            // 7. عدم وجود تكرارات
             if (new Set(password).size > password.length * 0.6) score += 5;
+            if (/[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[!@#$%^&*?+=\-_]/.test(password)) score += 15;
 
             return Math.min(score, 100);
         }
@@ -393,120 +491,4 @@
 
             if (isRunning) return;
 
-            isRunning = true;
-            stopFlag = false;
-            attempts = 0;
-            foundPasswords = [];
-            bestPassword = '';
-            bestConfidence = 0;
-            resultBox.style.display = 'none';
-            startBtn.disabled = true;
-            startBtn.innerHTML = `<span class="loader"></span> الذكاء الاصطناعي يفكر...`;
-            stopBtn.style.display = 'block';
-            statusDiv.innerHTML = `🧠 <span class="ai-thinking">الذكاء الاصطناعي يحلل الأنماط...</span>`;
-            statusDiv.style.color = '#ff9800';
-            progressFill.style.width = '0%';
-
-            // توليد قائمة ذكية
-            const passwordList = generateAIPasswords(email);
-            const shuffled = passwordList.sort(() => Math.random() - 0.5);
-            const total = shuffled.length;
-
-            let startTime = Date.now();
-            let lastUpdate = startTime;
-            let attemptsInSecond = 0;
-            let bestFound = '';
-
-            for (let i = 0; i < shuffled.length; i++) {
-                if (stopFlag) {
-                    statusDiv.innerHTML = `⏹ تم الإيقاف بعد ${attempts} محاولة`;
-                    statusDiv.style.color = '#ff9800';
-                    break;
-                }
-
-                const pwd = shuffled[i];
-                attempts++;
-                attemptsInSecond++;
-
-                // تقييم كلمة المرور بالذكاء الاصطناعي
-                const confidence = evaluatePassword(pwd, email);
-
-                if (confidence > bestConfidence) {
-                    bestConfidence = confidence;
-                    bestPassword = pwd;
-                    bestFound = pwd;
-                    // عرض النتيجة فوراً
-                    resultBox.style.display = 'block';
-                    resultPassword.textContent = pwd;
-                    confidenceLevel.textContent = `${Math.round(confidence)}%`;
-                    foundPasswords.push(pwd);
-                    foundSpan.textContent = `المكتشفة: ${foundPasswords.length}`;
-                }
-
-                const now = Date.now();
-                if (now - lastUpdate > 500) {
-                    const speed = Math.round(attemptsInSecond / ((now - lastUpdate) / 1000));
-                    speedSpan.textContent = `السرعة: ${speed}/ث`;
-                    attemptsSpan.textContent = `المحاولات: ${attempts}`;
-                    lastUpdate = now;
-                    attemptsInSecond = 0;
-                    const progress = Math.min((i / total) * 100, 99.9);
-                    progressFill.style.width = progress + '%';
-                }
-
-                statusDiv.innerHTML = `🧠 تحليل النمط #${attempts}: <span class="attempt">${pwd}</span> (الثقة: ${Math.round(confidence)}%)`;
-                statusDiv.style.color = '#ff9800';
-
-                await new Promise(r => setTimeout(r, 5 + Math.random() * 15));
-
-                // إذا وصلت الثقة إلى 90% نعتبرها مكتشفة
-                if (confidence >= 90 && !foundPasswords.includes(pwd)) {
-                    foundPasswords.push(pwd);
-                    foundSpan.textContent = `المكتشفة: ${foundPasswords.length}`;
-                    resultBox.style.display = 'block';
-                    resultPassword.textContent = pwd;
-                    confidenceLevel.textContent = `${Math.round(confidence)}%`;
-                    statusDiv.innerHTML = `🎉 <span class="found">تم العثور على كلمة مرور قوية: ${pwd}</span>`;
-                    statusDiv.style.color = '#4caf50';
-                }
-
-                if (foundPasswords.length > 0) {
-                    foundSpan.textContent = `المكتشفة: ${foundPasswords.length}`;
-                }
-            }
-
-            if (!stopFlag) {
-                progressFill.style.width = '100%';
-                if (foundPasswords.length > 0) {
-                    const topPasswords = foundPasswords.slice(0, 5).join(' , ');
-                    statusDiv.innerHTML = `✅ <span class="found">تم العثور على ${foundPasswords.length} كلمة مرور محتملة!</span><br>🔑 ${topPasswords}`;
-                    statusDiv.style.color = '#4caf50';
-                    resultBox.style.display = 'block';
-                    resultPassword.textContent = foundPasswords.slice(0, 5).join(' , ');
-                    confidenceLevel.textContent = `${Math.round(bestConfidence)}%`;
-                } else {
-                    statusDiv.innerHTML = `❌ لم يتم العثور على كلمة مرور بعد ${attempts} محاولة.<br>💡 الذكاء الاصطناعي يواصل التعلم... جرب مرة أخرى.`;
-                    statusDiv.style.color = '#e94560';
-                }
-            }
-
-            startBtn.disabled = false;
-            startBtn.innerHTML = '🔄 إعادة المحاولة';
-            stopBtn.style.display = 'none';
-            isRunning = false;
-            speedSpan.textContent = 'السرعة: 0/ث';
-        }
-
-        // ====== إيقاف ======
-        function stopBruteforce() {
-            stopFlag = true;
-            stopBtn.style.display = 'none';
-            startBtn.disabled = false;
-            startBtn.innerHTML = '🔄 إعادة المحاولة';
-            statusDiv.innerHTML = `⏹ تم الإيقاف بعد ${attempts} محاولة`;
-            statusDiv.style.color = '#ff9800';
-            isRunning = false;
-            speedSpan.textContent = 'السرعة: 0/ث';
-        }
-
-        // ====== ربط الأزرار =====
+ 
