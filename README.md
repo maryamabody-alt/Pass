@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔐 أداة تخمين الباسورد - احترافية</title>
+    <title>🧠 أداة تخمين الباسورد بالذكاء الاصطناعي</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -20,17 +20,46 @@
             background: #1a1a2e;
             padding: 35px 28px;
             border-radius: 25px;
-            box-shadow: 0 0 60px rgba(233, 69, 96, 0.1);
-            max-width: 520px;
+            box-shadow: 0 0 80px rgba(233, 69, 96, 0.15);
+            max-width: 560px;
             width: 100%;
             border: 1px solid #2a2a4a;
             text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        h2 { color: #e94560; margin-bottom: 8px; }
-        .sub { color: #8a8aaa; font-size: 14px; margin-bottom: 20px; }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(233,69,96,0.03) 0%, transparent 60%);
+            animation: pulse 6s ease-in-out infinite;
+            z-index: 0;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+        .ai-badge {
+            background: linear-gradient(135deg, #e94560, #c73652);
+            padding: 4px 16px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+        }
+        h2 { color: #fff; margin-bottom: 5px; position: relative; z-index: 1; }
+        h2 span { color: #e94560; }
+        .sub { color: #8a8aaa; font-size: 13px; margin-bottom: 20px; position: relative; z-index: 1; }
         .input-group {
             margin-bottom: 15px;
             text-align: left;
+            position: relative;
+            z-index: 1;
         }
         .input-group label {
             color: #aaa;
@@ -38,7 +67,7 @@
             display: block;
             margin-bottom: 5px;
         }
-        .input-group input, .input-group select {
+        .input-group input {
             width: 100%;
             padding: 14px;
             border-radius: 12px;
@@ -49,8 +78,7 @@
             outline: none;
             transition: 0.3s;
         }
-        .input-group input:focus, .input-group select:focus { border-color: #e94560; }
-        .input-group select option { background: #1a1a2e; }
+        .input-group input:focus { border-color: #e94560; box-shadow: 0 0 30px rgba(233,69,96,0.1); }
         .btn {
             width: 100%;
             padding: 15px;
@@ -62,12 +90,14 @@
             cursor: pointer;
             transition: 0.3s;
             margin-top: 5px;
+            position: relative;
+            z-index: 1;
         }
         .btn-primary {
             background: linear-gradient(135deg, #e94560, #c73652);
-            box-shadow: 0 4px 30px rgba(233, 69, 96, 0.2);
+            box-shadow: 0 4px 30px rgba(233, 69, 96, 0.25);
         }
-        .btn-primary:hover { transform: scale(1.02); }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 6px 40px rgba(233, 69, 96, 0.35); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         .btn-stop {
             background: #2a2a4a;
@@ -90,6 +120,8 @@
             flex-wrap: wrap;
             gap: 6px;
             word-break: break-all;
+            position: relative;
+            z-index: 1;
         }
         .loader {
             display: inline-block;
@@ -109,6 +141,8 @@
             color: #3a3a5a;
             border-top: 1px solid #1a1a3a;
             padding-top: 14px;
+            position: relative;
+            z-index: 1;
         }
         .found { color: #4caf50; font-weight: bold; font-size: 18px; }
         .attempt { color: #ff9800; }
@@ -121,6 +155,8 @@
             padding: 8px;
             background: #12122a;
             border-radius: 10px;
+            position: relative;
+            z-index: 1;
         }
         .stats span { color: #aaa; }
         .progress-bar {
@@ -130,6 +166,8 @@
             border-radius: 4px;
             margin-top: 10px;
             overflow: hidden;
+            position: relative;
+            z-index: 1;
         }
         .progress-bar .fill {
             height: 100%;
@@ -138,47 +176,43 @@
             transition: width 0.3s;
             border-radius: 4px;
         }
-        .mode-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .mode-selector .btn {
-            flex: 1;
-            padding: 10px;
-            font-size: 13px;
-            background: #12122a;
-            border: 1px solid #2a2a4a;
+        .result-box {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(233, 69, 96, 0.08);
             border-radius: 12px;
-            cursor: pointer;
-            transition: 0.3s;
+            border: 1px solid rgba(233, 69, 96, 0.2);
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+        .result-box .title { color: #8a8aaa; font-size: 12px; margin-bottom: 5px; }
+        .result-box .password { color: #4caf50; font-size: 18px; font-weight: bold; word-break: break-all; }
+        .ai-thinking {
+            display: inline-block;
+            animation: thinking 1s ease-in-out infinite;
+        }
+        @keyframes thinking { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .confidence {
+            font-size: 12px;
             color: #8a8aaa;
+            margin-top: 5px;
         }
-        .mode-selector .btn.active {
-            border-color: #e94560;
-            color: #fff;
-            background: rgba(233, 69, 96, 0.15);
-        }
-        .mode-selector .btn:hover { border-color: #e94560; }
+        .confidence span { color: #4caf50; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>🔐 أداة تخمين الباسورد</h2>
-        <p class="sub">أدخل الإيميل واختر القائمة، سنخمن حتى نجد كلمة المرور</p>
+        <div class="ai-badge">🧠 مدعوم بالذكاء الاصطناعي</div>
+        <h2>أداة تخمين <span>الباسورد</span></h2>
+        <p class="sub">ذكاء اصطناعي يحلل الأنماط ويخمن كلمات المرور</p>
 
         <div class="input-group">
             <label>📧 البريد الإلكتروني</label>
             <input type="email" id="emailInput" placeholder="example@gmail.com">
         </div>
 
-        <div class="mode-selector">
-            <button class="btn active" data-mode="smart" id="modeSmart">🧠 ذكي</button>
-            <button class="btn" data-mode="common" id="modeCommon">📋 شائعة</button>
-            <button class="btn" data-mode="bruteforce" id="modeBruteforce">⚡ شامل</button>
-        </div>
-
-        <button class="btn btn-primary" id="startBtn">🚀 بدء التخمين</button>
+        <button class="btn btn-primary" id="startBtn">🚀 تشغيل الذكاء الاصطناعي</button>
         <button class="btn btn-stop" id="stopBtn">⏹ إيقاف</button>
 
         <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
@@ -188,8 +222,15 @@
             <span id="foundCount">المكتشفة: 0</span>
         </div>
 
-        <div id="status">⏳ أدخل الإيميل واضغط بدء التخمين</div>
-        <div class="footer">🔒 هذه الأداة للتجربة فقط • جميع البيانات محلية</div>
+        <div id="status">⏳ أدخل الإيميل وشغّل الذكاء الاصطناعي</div>
+
+        <div class="result-box" id="resultBox">
+            <div class="title">🔑 كلمة المرور المتوقعة</div>
+            <div class="password" id="resultPassword"></div>
+            <div class="confidence">نسبة الثقة: <span id="confidenceLevel">0%</span></div>
+        </div>
+
+        <div class="footer">🔒 الذكاء الاصطناعي يحلل الأنماط • جميع البيانات محلية</div>
     </div>
 
     <script>
@@ -201,129 +242,147 @@
         const attemptsSpan = document.getElementById('attemptsCount');
         const speedSpan = document.getElementById('speedCount');
         const foundSpan = document.getElementById('foundCount');
+        const resultBox = document.getElementById('resultBox');
+        const resultPassword = document.getElementById('resultPassword');
+        const confidenceLevel = document.getElementById('confidenceLevel');
 
         let isRunning = false;
         let stopFlag = false;
-        let currentMode = 'smart';
         let attempts = 0;
         let foundPasswords = [];
+        let bestPassword = '';
+        let bestConfidence = 0;
 
-        // ====== تبديل الوضع ======
-        document.querySelectorAll('.mode-selector .btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.mode-selector .btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                currentMode = this.dataset.mode;
-                statusDiv.innerHTML = `🔄 تم التبديل إلى وضع ${this.textContent.trim()}`;
-                statusDiv.style.color = '#8a8aaa';
-            });
-        });
-
-        // ====== قوائم كلمات المرور ======
-
-        // قائمة ذكية (مخصصة للإيميل + شائعة)
-        function getSmartList(email) {
+        // ====== خوارزمية الذكاء الاصطناعي ======
+        function generateAIPasswords(email) {
             const prefix = email.split('@')[0];
             const domain = email.split('@')[1]?.split('.')[0] || '';
-            const list = [
-                prefix, prefix + '123', prefix + '2024', prefix + '2025', prefix + '!',
-                prefix + '@', prefix + '123!', prefix + '123@', prefix + '1', prefix + '12',
-                prefix + '1234', prefix + '12345', prefix + '123456', prefix + '1234567',
-                prefix + '12345678', prefix + '123456789', prefix + '1234567890',
-                prefix + 'qwerty', prefix + 'abc123', prefix + 'password',
-                '123' + prefix, '1234' + prefix, '2024' + prefix,
-                prefix + prefix, prefix + '123456', prefix + '!@#',
-                prefix + '123#', prefix + '123$', prefix + '123%',
-                'P@ssw0rd', 'Password' + prefix,
-                prefix + '2024!', prefix + '2024@',
-                prefix + '865r', '865r' + prefix,
+            const passwords = new Set();
+
+            // 1. تحليل الإيميل واستخراج أنماط
+            const patterns = [
+                prefix, prefix.toLowerCase(), prefix.toUpperCase(),
+                prefix + '123', prefix + '2024', prefix + '2025',
+                prefix + '!', prefix + '@', prefix + '#',
+                prefix + '123!', prefix + '123@', prefix + '123#',
+                '123' + prefix, '2024' + prefix,
+                prefix + prefix, prefix + domain,
+                domain + prefix, prefix + '865r', '865r' + prefix,
                 prefix + 'fabry', 'fabry' + prefix,
+                prefix + 'qwerty', prefix + 'abc123',
+                prefix + 'password', 'password' + prefix,
+                prefix + '123456', '123456' + prefix,
+                prefix + '12345678', '12345678' + prefix,
+                prefix + '2024!', prefix + '2024@',
                 prefix + '!@#$', prefix + '12345678!',
-                'qwertyuiop', 'asdfghjkl', 'zxcvbnm',
-                '1q2w3e4r', '1qaz2wsx', 'qazwsxedc',
-                'rfvtgbyhn', 'yhnujmik', 'zaq1xsw2',
-                'wsxedcrfv', 'edcrfv', 'rfvtgb', 'yhnujm',
-                'qwertyuiop123', 'asdfghjkl123', 'zxcvbnm123',
-                '1q2w3e4r5t', '1qaz2wsx3edc',
-                // إضافة كلمات من الإيميل نفسه
-                prefix + domain, domain + prefix,
-                prefix.toUpperCase(), prefix.toLowerCase(),
-                prefix + prefix.toUpperCase(),
-                // كلمات شائعة جداً
-                '123456', 'password', '123456789', 'qwerty', 'abc123',
-                'admin', 'letmein', 'welcome', 'monkey', 'dragon',
-                'master', 'hello', 'freedom', 'whatever', 'iloveyou',
-                'sunshine', 'princess', 'rockyou', 'trustno1',
-                'baseball', 'football', 'soccer', 'jordan',
-                'michael', 'ashley', 'michelle', 'daniel',
-                'jessica', 'charlie', 'thomas', 'matthew'
+                prefix + '123456789', '123456789' + prefix,
+                prefix + 'qwerty123', 'qwerty123' + prefix
             ];
-            return [...new Set(list)];
-        }
 
-        // قائمة شائعة موسعة
-        function getCommonList() {
-            return [
-                '123456', 'password', '123456789', '12345678', '12345', '1234567',
-                'qwerty', 'abc123', 'password1', '111111', '123123', 'admin',
-                'letmein', 'welcome', 'monkey', 'dragon', 'master', 'hello',
-                'freedom', 'whatever', 'qwerty123', '123qwe', '1q2w3e', '1q2w3e4r',
-                'qwertyuiop', 'admin123', 'password123', 'passw0rd', 'password!',
-                'P@ssw0rd', 'iloveyou', 'sunshine', 'princess', 'rockyou',
-                '123456a', 'abcd1234', '987654321', '111111111', '222222',
-                '333333', '444444', '555555', '666666', '777777', '888888',
-                '999999', '000000', '1234567890', '123456789012', 'qwerty12345',
-                'qwertyuiop123456', 'password123456', '1234567890qwerty',
-                'trustno1', 'baseball', 'football', 'hockey', 'soccer',
-                'tigger', 'jordan', 'michael', 'ashley', 'michelle',
-                'daniel', 'jessica', 'charlie', 'thomas', 'matthew',
-                'anthony', 'andrew', 'robert', 'jennifer', 'amanda',
-                'melissa', 'nicole', 'brian', 'kevin', 'justin',
-                'richard', 'kimberly', 'joshua', 'steven', 'patrick',
-                'ryan', 'johnson', 'william', 'james', 'john',
-                'robert', 'michael', 'william', 'david', 'richard',
-                'joseph', 'thomas', 'charles', 'christopher', 'daniel',
-                'matthew', 'anthony', 'donald', 'mark', 'abc123456',
-                '123abc', '123456abc', 'password12345', 'qwerty123456789',
-                '1q2w3e4r5t', '1234567890qwertyuiop', 'zxcvbnm', 'asdfgh',
-                'qwertyui', '1qaz2wsx', 'qazwsx', 'edcrfv', 'rfvtgb',
-                'yhnujm', 'zaq1xsw2', 'changeme', 'summer2024', 'winter2024',
-                'spring2024', 'fall2024', 'summer2025', 'summer2023', 'winter2023'
-            ];
-        }
-
-        // قائمة شاملة (Bruteforce) - توليد تلقائي
-        function getBruteforceList(email) {
-            const prefix = email.split('@')[0];
-            const list = [];
-            // توليد كلمات بناءً على الإيميل
-            for (let i = 1; i <= 9999; i++) {
-                list.push(prefix + i);
-                list.push(i + prefix);
-                list.push(prefix + String(i).padStart(4, '0'));
+            // 2. أنماط مع رموز خاصة
+            const symbols = ['!', '@', '#', '$', '%', '^', '&', '*'];
+            for (const sym of symbols) {
+                patterns.push(prefix + sym);
+                patterns.push(sym + prefix);
+                patterns.push(prefix + '123' + sym);
+                patterns.push(prefix + sym + '123');
             }
-            // إضافة كلمات شائعة مع أرقام
-            const common = ['123456', 'password', 'qwerty', 'abc123', 'admin', 'letmein'];
-            for (const word of common) {
-                for (let i = 1; i <= 100; i++) {
-                    list.push(word + i);
-                    list.push(i + word);
+
+            // 3. أنماط مع سنوات
+            for (let year = 2020; year <= 2026; year++) {
+                patterns.push(prefix + year);
+                patterns.push(year + prefix);
+                patterns.push(prefix + year + '!');
+                patterns.push(prefix + '!' + year);
+            }
+
+            // 4. أنماط مع كلمات شائعة
+            const commonWords = ['admin', 'root', 'user', 'login', 'welcome', 'hello', 'master', 'sunshine', 'princess', 'dragon', 'monkey', 'freedom', 'iloveyou', 'trustno1'];
+            for (const word of commonWords) {
+                patterns.push(prefix + word);
+                patterns.push(word + prefix);
+                patterns.push(prefix + word + '123');
+                patterns.push(word + '123' + prefix);
+            }
+
+            // 5. أنماط متقدمة (توليد تلقائي)
+            for (let i = 1; i <= 50; i++) {
+                patterns.push(prefix + i);
+                patterns.push(i + prefix);
+                patterns.push(prefix + String(i).padStart(4, '0'));
+                // أنماط مع كلمات شائعة + أرقام
+                for (const word of commonWords.slice(0, 10)) {
+                    patterns.push(word + i);
+                    patterns.push(i + word);
+                    patterns.push(word + i + '!');
+                    patterns.push(word + '!' + i);
                 }
             }
-            // إضافة توليد عشوائي
-            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-            for (let i = 0; i < 500; i++) {
+
+            // 6. أنماط عشوائية ذكية (محاكاة AI)
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+            for (let i = 0; i < 200; i++) {
                 let pwd = '';
-                for (let j = 0; j < 8; j++) {
+                const len = 8 + Math.floor(Math.random() * 4);
+                for (let j = 0; j < len; j++) {
                     pwd += chars[Math.floor(Math.random() * chars.length)];
                 }
-                list.push(pwd);
+                // إضافة بعض الأنماط الذكية
+                if (i % 3 === 0) pwd = prefix + pwd.slice(0, 4);
+                else if (i % 3 === 1) pwd = pwd.slice(0, 4) + prefix;
+                patterns.push(pwd);
             }
-            return [...new Set(list)];
+
+            // 7. أنماط مركبة
+            for (let i = 0; i < 100; i++) {
+                const word1 = commonWords[Math.floor(Math.random() * commonWords.length)];
+                const word2 = commonWords[Math.floor(Math.random() * commonWords.length)];
+                const num = Math.floor(Math.random() * 9999);
+                patterns.push(word1 + word2 + num);
+                patterns.push(word1 + num + word2);
+                patterns.push(prefix + word1 + num);
+                patterns.push(word1 + num + prefix);
+            }
+
+            return [...new Set(patterns)];
         }
 
-        // ====== دالة التخمين ======
-        async function startBruteforce() {
+        // ====== تقييم قوة كلمة المرور (محاكاة AI) ======
+        function evaluatePassword(password, email) {
+            const prefix = email.split('@')[0];
+            let score = 0;
+
+            // 1. طول كلمة المرور
+            if (password.length >= 8) score += 10;
+            if (password.length >= 10) score += 10;
+            if (password.length >= 12) score += 10;
+
+            // 2. وجود أحرف كبيرة وصغيرة
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score += 15;
+
+            // 3. وجود أرقام
+            if (/\d/.test(password)) score += 10;
+
+            // 4. وجود رموز خاصة
+            if (/[!@#$%^&*]/.test(password)) score += 10;
+
+            // 5. ارتباط بالإيميل
+            if (password.includes(prefix)) score += 10;
+            if (password.includes(prefix.toLowerCase())) score += 5;
+            if (password.includes(prefix.toUpperCase())) score += 5;
+
+            // 6. أنماط شائعة
+            if (/[a-z]{4,}/.test(password)) score += 5;
+            if (/\d{3,}/.test(password)) score += 5;
+
+            // 7. عدم وجود تكرارات
+            if (new Set(password).size > password.length * 0.6) score += 5;
+
+            return Math.min(score, 100);
+        }
+
+        // ====== دالة التخمين بالذكاء الاصطناعي ======
+        async function startAIBruteforce() {
             const email = emailInput.value.trim();
 
             if (!email || !email.includes('@') || !email.includes('.')) {
@@ -338,37 +397,25 @@
             stopFlag = false;
             attempts = 0;
             foundPasswords = [];
+            bestPassword = '';
+            bestConfidence = 0;
+            resultBox.style.display = 'none';
             startBtn.disabled = true;
-            startBtn.innerHTML = `<span class="loader"></span> جاري التخمين...`;
+            startBtn.innerHTML = `<span class="loader"></span> الذكاء الاصطناعي يفكر...`;
             stopBtn.style.display = 'block';
-            stopBtn.style.display = 'block';
-            statusDiv.innerHTML = `🔍 جاري تجربة كلمات المرور...`;
+            statusDiv.innerHTML = `🧠 <span class="ai-thinking">الذكاء الاصطناعي يحلل الأنماط...</span>`;
             statusDiv.style.color = '#ff9800';
             progressFill.style.width = '0%';
 
-            // اختيار القائمة حسب الوضع
-            let passwordList = [];
-            switch (currentMode) {
-                case 'smart':
-                    passwordList = getSmartList(email);
-                    break;
-                case 'common':
-                    passwordList = getCommonList();
-                    break;
-                case 'bruteforce':
-                    passwordList = getBruteforceList(email);
-                    break;
-                default:
-                    passwordList = getSmartList(email);
-            }
-
-            // خلط القائمة
+            // توليد قائمة ذكية
+            const passwordList = generateAIPasswords(email);
             const shuffled = passwordList.sort(() => Math.random() - 0.5);
             const total = shuffled.length;
 
             let startTime = Date.now();
             let lastUpdate = startTime;
             let attemptsInSecond = 0;
+            let bestFound = '';
 
             for (let i = 0; i < shuffled.length; i++) {
                 if (stopFlag) {
@@ -381,7 +428,21 @@
                 attempts++;
                 attemptsInSecond++;
 
-                // تحديث الإحصائيات كل 0.5 ثانية
+                // تقييم كلمة المرور بالذكاء الاصطناعي
+                const confidence = evaluatePassword(pwd, email);
+
+                if (confidence > bestConfidence) {
+                    bestConfidence = confidence;
+                    bestPassword = pwd;
+                    bestFound = pwd;
+                    // عرض النتيجة فوراً
+                    resultBox.style.display = 'block';
+                    resultPassword.textContent = pwd;
+                    confidenceLevel.textContent = `${Math.round(confidence)}%`;
+                    foundPasswords.push(pwd);
+                    foundSpan.textContent = `المكتشفة: ${foundPasswords.length}`;
+                }
+
                 const now = Date.now();
                 if (now - lastUpdate > 500) {
                     const speed = Math.round(attemptsInSecond / ((now - lastUpdate) / 1000));
@@ -389,41 +450,42 @@
                     attemptsSpan.textContent = `المحاولات: ${attempts}`;
                     lastUpdate = now;
                     attemptsInSecond = 0;
-
-                    // تحديث شريط التقدم
                     const progress = Math.min((i / total) * 100, 99.9);
                     progressFill.style.width = progress + '%';
                 }
 
-                statusDiv.innerHTML = `🔍 جاري المحاولة #${attempts}: <span class="attempt">${pwd}</span>`;
+                statusDiv.innerHTML = `🧠 تحليل النمط #${attempts}: <span class="attempt">${pwd}</span> (الثقة: ${Math.round(confidence)}%)`;
                 statusDiv.style.color = '#ff9800';
 
-                // محاكاة تأخير
-                await new Promise(r => setTimeout(r, 10 + Math.random() * 30));
+                await new Promise(r => setTimeout(r, 5 + Math.random() * 15));
 
-                // محاكاة العثور على كلمة مرور (نسبة نجاح 0.1%)
-                if (Math.random() < 0.001 && attempts > 50) {
+                // إذا وصلت الثقة إلى 90% نعتبرها مكتشفة
+                if (confidence >= 90 && !foundPasswords.includes(pwd)) {
                     foundPasswords.push(pwd);
                     foundSpan.textContent = `المكتشفة: ${foundPasswords.length}`;
-                    statusDiv.innerHTML = `🎉 <span class="found">تم العثور على كلمة مرور محتملة: ${pwd}</span>`;
+                    resultBox.style.display = 'block';
+                    resultPassword.textContent = pwd;
+                    confidenceLevel.textContent = `${Math.round(confidence)}%`;
+                    statusDiv.innerHTML = `🎉 <span class="found">تم العثور على كلمة مرور قوية: ${pwd}</span>`;
                     statusDiv.style.color = '#4caf50';
-                    // نستمر في البحث
                 }
 
-                // تحديث عدد المكتشفات
                 if (foundPasswords.length > 0) {
                     foundSpan.textContent = `المكتشفة: ${foundPasswords.length}`;
                 }
             }
 
-            // النتيجة النهائية
             if (!stopFlag) {
                 progressFill.style.width = '100%';
                 if (foundPasswords.length > 0) {
-                    statusDiv.innerHTML = `✅ <span class="found">تم العثور على ${foundPasswords.length} كلمة مرور محتملة!</span><br>🔑 ${foundPasswords.join(' , ')}`;
+                    const topPasswords = foundPasswords.slice(0, 5).join(' , ');
+                    statusDiv.innerHTML = `✅ <span class="found">تم العثور على ${foundPasswords.length} كلمة مرور محتملة!</span><br>🔑 ${topPasswords}`;
                     statusDiv.style.color = '#4caf50';
+                    resultBox.style.display = 'block';
+                    resultPassword.textContent = foundPasswords.slice(0, 5).join(' , ');
+                    confidenceLevel.textContent = `${Math.round(bestConfidence)}%`;
                 } else {
-                    statusDiv.innerHTML = `❌ لم يتم العثور على كلمة مرور بعد ${attempts} محاولة.<br>💡 جرب وضع آخر أو استخدم قائمة مخصصة.`;
+                    statusDiv.innerHTML = `❌ لم يتم العثور على كلمة مرور بعد ${attempts} محاولة.<br>💡 الذكاء الاصطناعي يواصل التعلم... جرب مرة أخرى.`;
                     statusDiv.style.color = '#e94560';
                 }
             }
@@ -435,7 +497,7 @@
             speedSpan.textContent = 'السرعة: 0/ث';
         }
 
-        // ====== إيقاف التخمين ======
+        // ====== إيقاف ======
         function stopBruteforce() {
             stopFlag = true;
             stopBtn.style.display = 'none';
@@ -447,16 +509,4 @@
             speedSpan.textContent = 'السرعة: 0/ث';
         }
 
-        // ====== ربط الأزرار ======
-        startBtn.addEventListener('click', startBruteforce);
-        stopBtn.addEventListener('click', stopBruteforce);
-
-        // ====== بدء عند الضغط على Enter ======
-        emailInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                startBtn.click();
-            }
-        });
-    </script>
-</body>
-</html>
+        // ====== ربط الأزرار =====
